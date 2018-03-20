@@ -17,43 +17,66 @@ App = React.createClass({
 
 	handleSearch: function(searchingText){
 	
-	// a) sets state loading to true - shows loading gif
-	
 		this.setState({
 			loading: true
 		});
 		
-	// b) this part runs getGif method and sets new state of App component then receive gif object from callback
+		var self = this;
 	
-		this.getGif(searchingText, function(gif){
-	
-			this.setState({
-				loading: false,
-				gif: gif,
-				searchingText: searchingText
-			});
-		}.bind(this)); 
+		this.getGif(searchingText)
+		
+			.then(function(gif){
+			
+				self.setState({
+					loading: false,
+					gif: gif,
+					searchingText: searchingText
+				});
+			})
+				
+			.catch(function(error){
+				console.log(error);
+			});	
 	},
 	
 // 3.  getGif method - gets gif from giphy.com and returns gif object as callback
 	
-	getGif: function(searchingText, callback){
-
-		var url = GIPHY_API_URL + '/v1/gifs/random?api_key=' + GIPHY_PUB_KEY + '&tag=' + searchingText;
-		console.log(url);
-		var xhr = new XMLHttpRequest();
-		xhr.open('GET', url);
-		xhr.onload=function(){
-			if(xhr.status === 200){
-				var data =JSON.parse(xhr.responseText).data; 
-				var gif = {
-					url: data.fixed_width_downsampled_url,
-					sourceUrl: data.url
-				};
-				callback(gif); 
-			}
-		}
-		xhr.send();
+	getGif: function(searchingText){
+	
+		return new Promise (
+		function(resolve, reject){
+	
+			var url = GIPHY_API_URL + '/v1/gifs/random?api_key=' + GIPHY_PUB_KEY + '&tag=' + searchingText;
+			var xhr = new XMLHttpRequest();
+			
+			xhr.open('GET', url);
+			xhr.onload = function(){
+			
+				if (xhr.status === 200){
+					
+					var data =JSON.parse(xhr.responseText).data; 
+					
+					if (data.type === 'gif'){							
+							var gif = {
+								url: data.fixed_width_downsampled_url,
+								sourceUrl: data.url
+							};
+						resolve(gif);
+						
+					} else {
+						reject (new Error('Gif not found'));	
+					}
+					
+						 
+				} else {
+					reject (new Error(this.statustext));	
+				}
+			};
+			xhr.onerror = function() {
+				reject(new Error(`XMLHttpRequest Error: ${this.statusText}`));
+			};
+			xhr.send();
+		});	
 	},
 	
 /* 4.  Render method  */
