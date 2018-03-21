@@ -39,7 +39,7 @@ App = React.createClass({
 			});	
 	},
 	
-// 3.  getGif method - gets gif from giphy.com and returns gif object as callback
+// 3.  getGif method - gets gif from giphy.com and returns gif object
 	
 	getGif: function(searchingText){
 	
@@ -71,9 +71,6 @@ App = React.createClass({
 				} else {
 					reject (new Error(this.statustext));	
 				}
-			};
-			xhr.onerror = function() {
-				reject(new Error(`XMLHttpRequest Error: ${this.statusText}`));
 			};
 			xhr.send();
 		});	
